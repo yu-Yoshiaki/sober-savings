@@ -9,14 +9,18 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Goals from "./pages/Goals";
 import Settings from "./pages/Settings";
-
+import Pricing from "./pages/Pricing";
+import AICoach from "./pages/AICoach";
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Layout>
       <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/goals"} component={Goals} />
         <Route path={"/settings"} component={Settings} />
+        <Route path={"/pricing"} component={Pricing} />
+        <Route path={"/coach"} component={AICoach} />
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />

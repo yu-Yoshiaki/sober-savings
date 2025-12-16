@@ -1,12 +1,15 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import { useApp } from "@/contexts/AppContext";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Plus, WineOff } from "lucide-react";
+import { ArrowRight, WineOff, Sparkles } from "lucide-react";
 import { Link } from "wouter";
+import { getLoginUrl } from "@/const";
 
 export default function Home() {
+  const { user, isAuthenticated } = useAuth();
   const { totalSaved, daysSober, activeGoalId, goals, settings } = useApp();
   
   const activeGoal = goals.find(g => g.id === activeGoalId) || goals[0];
@@ -46,6 +49,37 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Pro Upgrade Banner (for non-authenticated users) */}
+      {!isAuthenticated && (
+        <Card className="border-2 border-secondary/50 bg-gradient-to-r from-secondary/10 to-accent/10">
+          <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-secondary/20 rounded-full">
+                <Sparkles className="w-6 h-6 text-secondary" />
+              </div>
+              <div>
+                <h3 className="font-serif font-bold text-lg">Upgrade to Pro</h3>
+                <p className="text-sm text-muted-foreground">
+                  Sync across devices, get AI coaching, and unlock detailed analytics.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/pricing">
+                <Button variant="default" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
+                  View Plans
+                </Button>
+              </Link>
+              <a href={getLoginUrl()}>
+                <Button variant="outline">
+                  Sign In
+                </Button>
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Active Goal Section */}
       <section>

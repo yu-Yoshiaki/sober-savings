@@ -1,14 +1,22 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Home, Settings, Trophy, Wallet } from "lucide-react";
+import { Home, Settings, Trophy, Bot, Crown } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { getLoginUrl } from "@/const";
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { user, isAuthenticated } = useAuth();
+  const { data: status } = trpc.subscription.getStatus.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/goals", icon: Trophy, label: "Goals" },
+    { href: "/coach", icon: Bot, label: "AI Coach", isPro: true },
     { href: "/settings", icon: Settings, label: "Settings" },
   ];
 
@@ -43,9 +51,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
+                {item.isPro && !status?.isPro && (
+                  <Crown className="w-3 h-3 text-secondary ml-auto" />
+                )}
               </Button>
             </Link>
           ))}
+          
+          {/* Upgrade CTA for non-Pro users */}
+          {isAuthenticated && !status?.isPro && (
+            <Link href="/pricing">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 text-base font-medium mt-4 border-secondary/50 text-secondary hover:bg-secondary/10"
+              >
+                <Crown className="w-5 h-5" />
+                Proにアップグレード
+              </Button>
+            </Link>
+          )}
         </nav>
 
         <div className="mt-auto pt-6 border-t border-border">
