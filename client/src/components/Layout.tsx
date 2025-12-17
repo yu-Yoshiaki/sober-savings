@@ -1,10 +1,9 @@
 import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Home, Settings, Trophy, Bot, Crown } from "lucide-react";
+import { Home, Target, Bot, Settings, Crown } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { getLoginUrl } from "@/const";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -14,95 +13,134 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   });
 
   const navItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/goals", icon: Trophy, label: "Goals" },
-    { href: "/coach", icon: Bot, label: "AI Coach", isPro: true },
-    { href: "/settings", icon: Settings, label: "Settings" },
+    { href: "/", icon: Home, label: "ホーム" },
+    { href: "/goals", icon: Target, label: "目標" },
+    { href: "/coach", icon: Bot, label: "コーチ", isPro: true },
+    { href: "/settings", icon: Settings, label: "設定" },
   ];
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground flex flex-col md:flex-row">
-      {/* Mobile Header */}
-      <header className="md:hidden p-4 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10 flex justify-between items-center">
-        <h1 className="font-serif text-xl font-bold text-primary">Sober Savings</h1>
-        <div className="text-sm font-medium text-muted-foreground">
-          Organic Wealth
-        </div>
-      </header>
-
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card p-6 sticky top-0 h-screen">
-        <div className="mb-10">
-          <h1 className="font-serif text-2xl font-bold text-primary mb-2">Sober Savings</h1>
-          <p className="text-sm text-muted-foreground">Invest in a richer life.</p>
-        </div>
-
-        <nav className="space-y-2 flex-1">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3 text-base font-medium transition-all duration-300",
-                  location === item.href
-                    ? "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-                {item.isPro && !status?.isPro && (
-                  <Crown className="w-3 h-3 text-secondary ml-auto" />
-                )}
-              </Button>
-            </Link>
-          ))}
-          
-          {/* Upgrade CTA for non-Pro users */}
-          {isAuthenticated && !status?.isPro && (
-            <Link href="/pricing">
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 text-base font-medium mt-4 border-secondary/50 text-secondary hover:bg-secondary/10"
-              >
-                <Crown className="w-5 h-5" />
-                Proにアップグレード
-              </Button>
-            </Link>
-          )}
-        </nav>
-
-        <div className="mt-auto pt-6 border-t border-border">
-          <div className="bg-secondary/30 p-4 rounded-lg">
-            <p className="text-xs font-serif italic text-secondary-foreground text-center">
-              "The greatest wealth is health."
-            </p>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full pb-24 md:pb-8">
-        {children}
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Main Content - Full screen mobile-first */}
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 md:ml-20">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="min-h-full"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-2 flex justify-around items-center z-50 safe-area-pb">
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <div
-              className={cn(
-                "flex flex-col items-center p-2 rounded-lg transition-colors",
-                location === item.href
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
+      {/* Mobile Bottom Navigation - iOS/Android style */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border/50 z-50 safe-area-pb">
+        <div className="flex justify-around items-center h-16 px-2">
+          {navItems.map((item) => {
+            const isActive = location === item.href;
+            const Icon = item.icon;
+            
+            return (
+              <Link key={item.href} href={item.href}>
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  className={cn(
+                    "flex flex-col items-center justify-center w-16 h-14 rounded-2xl transition-all duration-200",
+                    isActive 
+                      ? "bg-primary/10" 
+                      : "active:bg-muted"
+                  )}
+                >
+                  <div className="relative">
+                    <Icon 
+                      className={cn(
+                        "w-6 h-6 transition-colors",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )} 
+                    />
+                    {item.isPro && !status?.isPro && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full flex items-center justify-center">
+                        <Crown className="w-2 h-2 text-secondary-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <span 
+                    className={cn(
+                      "text-[10px] mt-1 font-medium transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-1 w-1 h-1 bg-primary rounded-full"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </motion.div>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Desktop Side Navigation - Minimal rail style */}
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 bg-card border-r border-border/50 flex-col items-center py-6 z-50">
+        {/* Logo */}
+        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-8">
+          <span className="text-xl font-serif font-bold text-primary">S</span>
+        </div>
+
+        {/* Nav Items */}
+        <div className="flex-1 flex flex-col items-center gap-2">
+          {navItems.map((item) => {
+            const isActive = location === item.href;
+            const Icon = item.icon;
+            
+            return (
+              <Link key={item.href} href={item.href}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={cn(
+                    "relative w-14 h-14 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer",
+                    isActive 
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-[9px] mt-1 font-medium">{item.label}</span>
+                  {item.isPro && !status?.isPro && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center">
+                      <Crown className="w-2.5 h-2.5 text-secondary-foreground" />
+                    </div>
+                  )}
+                </motion.div>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Pro Badge */}
+        {isAuthenticated && !status?.isPro && (
+          <Link href="/pricing">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/10 border border-secondary/30 flex flex-col items-center justify-center cursor-pointer"
             >
-              <item.icon className="w-6 h-6 mb-1" />
-              <span className="text-[10px] font-medium">{item.label}</span>
-            </div>
+              <Crown className="w-5 h-5 text-secondary" />
+              <span className="text-[8px] mt-1 font-bold text-secondary">PRO</span>
+            </motion.div>
           </Link>
-        ))}
+        )}
       </nav>
     </div>
   );
