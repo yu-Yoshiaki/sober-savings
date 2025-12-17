@@ -27,3 +27,10 @@
 - [ ] Cloud sync for user data
 - [ ] Detailed analytics/reports
 - [ ] Email notifications
+
+## UI改善 - ポジティブ表現の強化
+- [x] ヒーローセクションを「獲得した価値」中心のデザインに刷新
+- [x] 健康回復タイムラインの実装
+- [x] 達成バッジシステムの追加
+- [x] 目標進捗の「夢への距離」表現
+- [x] 祝福アニメーションの追加
