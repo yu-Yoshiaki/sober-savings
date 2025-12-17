@@ -4,28 +4,20 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Calendar, Wallet, Trash2, ChevronRight, Save, AlertTriangle } from "lucide-react";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { trpc } from "@/lib/trpc";
-import { getLoginUrl } from "@/const";
+import { Calendar, Wallet, Trash2, ArrowLeft, Save, AlertTriangle } from "lucide-react";
+import { Link } from "wouter";
 
 interface SettingsForm {
-  name: string;
   dailyTarget: number;
   startDate: string;
 }
 
 export default function Settings() {
   const { settings, updateSettings, resetData } = useApp();
-  const { user, isAuthenticated, logout } = useAuth();
-  const { data: status } = trpc.subscription.getStatus.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   const { register, handleSubmit, reset, formState: { isDirty } } = useForm<SettingsForm>({
     defaultValues: {
-      name: settings.name,
       dailyTarget: settings.dailyTarget,
       startDate: settings.startDate.split('T')[0],
     }
@@ -33,7 +25,6 @@ export default function Settings() {
 
   useEffect(() => {
     reset({
-      name: settings.name,
       dailyTarget: settings.dailyTarget,
       startDate: settings.startDate.split('T')[0],
     });
@@ -41,7 +32,6 @@ export default function Settings() {
 
   const onSubmit = (data: SettingsForm) => {
     updateSettings({
-      name: data.name,
       dailyTarget: Number(data.dailyTarget),
       startDate: new Date(data.startDate).toISOString(),
     });
@@ -51,177 +41,118 @@ export default function Settings() {
   const handleReset = () => {
     resetData();
     setShowResetConfirm(false);
-    toast.info("すべてのデータをリセットしました");
+    toast.info("データをリセットしました");
   };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50 px-4 py-4">
-        <h1 className="text-2xl font-bold">設定</h1>
-      </div>
+      <header className="flex items-center gap-4 px-6 pt-6 pb-4">
+        <Link href="/">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            className="icon-3d w-10 h-10 rounded-xl flex items-center justify-center"
+          >
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+          </motion.button>
+        </Link>
+        <h1 className="text-xl font-bold">設定</h1>
+      </header>
 
-      <div className="px-4 py-4 space-y-6">
-        {/* Account Section */}
-        <section>
-          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            アカウント
-          </h2>
-          <div className="bg-card rounded-3xl overflow-hidden border border-border/50">
-            {isAuthenticated ? (
-              <>
-                <div className="p-4 flex items-center gap-4">
-                  <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center">
-                    <User className="w-7 h-7 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold truncate">{user?.name || 'ユーザー'}</div>
-                    <div className="text-sm text-muted-foreground truncate">{user?.email}</div>
-                    {status?.isPro && (
-                      <div className="inline-flex items-center gap-1 bg-secondary/20 text-secondary px-2 py-0.5 rounded-full text-xs font-medium mt-1">
-                        Pro
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="border-t border-border/50">
-                  <button
-                    onClick={logout}
-                    className="w-full p-4 text-left text-destructive text-sm font-medium active:bg-muted transition-colors"
-                  >
-                    ログアウト
-                  </button>
-                </div>
-              </>
-            ) : (
-              <a href={getLoginUrl()} className="block">
-                <motion.div 
-                  whileTap={{ scale: 0.98 }}
-                  className="p-4 flex items-center gap-4"
-                >
-                  <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center">
-                    <User className="w-7 h-7 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold">ログイン</div>
-                    <div className="text-sm text-muted-foreground">データを同期して守ろう</div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </motion.div>
-              </a>
-            )}
-          </div>
-        </section>
-
-        {/* Settings Form */}
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <section>
-            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-              禁酒設定
-            </h2>
-            <div className="bg-card rounded-3xl overflow-hidden border border-border/50 divide-y divide-border/50">
-              {/* Name */}
-              <div className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-                    <User className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-sm text-muted-foreground">ニックネーム</label>
-                    <input
-                      {...register("name")}
-                      className="w-full bg-transparent font-medium focus:outline-none"
-                      placeholder="あなたの名前"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Daily Target */}
-              <div className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-green-500" />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-sm text-muted-foreground">1日の節約目標額</label>
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">¥</span>
-                      <input
-                        {...register("dailyTarget", { min: 0 })}
-                        type="number"
-                        className="w-full bg-transparent font-medium focus:outline-none"
-                        placeholder="1000"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Start Date */}
-              <div className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-purple-500" />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-sm text-muted-foreground">禁酒開始日</label>
-                    <input
-                      {...register("startDate")}
-                      type="date"
-                      className="w-full bg-transparent font-medium focus:outline-none"
-                    />
-                  </div>
-                </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-4 space-y-4">
+        
+        {/* 1日の節約額 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card-3d rounded-2xl p-5"
+        >
+          <div className="flex items-center gap-4">
+            <div className="icon-3d w-12 h-12 rounded-xl flex items-center justify-center">
+              <Wallet className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <label className="text-sm text-muted-foreground">1日の節約額</label>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">¥</span>
+                <input
+                  {...register("dailyTarget", { min: 0 })}
+                  type="number"
+                  className="w-full bg-transparent text-xl font-bold focus:outline-none"
+                  placeholder="1000"
+                />
               </div>
             </div>
-          </section>
-
-          {/* Save Button */}
-          {isDirty && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4"
-            >
-              <Button type="submit" className="w-full rounded-2xl h-12">
-                <Save className="w-4 h-4 mr-2" />
-                変更を保存
-              </Button>
-            </motion.div>
-          )}
-        </form>
-
-        {/* Danger Zone */}
-        <section>
-          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            データ管理
-          </h2>
-          <div className="bg-card rounded-3xl overflow-hidden border border-destructive/30">
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowResetConfirm(true)}
-              className="w-full p-4 flex items-center gap-4 text-left active:bg-muted transition-colors"
-            >
-              <div className="w-10 h-10 bg-destructive/10 rounded-xl flex items-center justify-center">
-                <Trash2 className="w-5 h-5 text-destructive" />
-              </div>
-              <div className="flex-1">
-                <div className="font-medium text-destructive">データをリセット</div>
-                <div className="text-xs text-muted-foreground">すべての進捗と設定を削除</div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </motion.button>
           </div>
-        </section>
+        </motion.div>
 
-        {/* App Info */}
-        <section className="text-center text-xs text-muted-foreground pb-8">
-          <p>Sober Savings v1.0.0</p>
-          <p className="mt-1">あなたの禁酒をサポートします</p>
-        </section>
-      </div>
+        {/* 禁酒開始日 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="card-3d rounded-2xl p-5"
+        >
+          <div className="flex items-center gap-4">
+            <div className="icon-3d w-12 h-12 rounded-xl flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <label className="text-sm text-muted-foreground">禁酒開始日</label>
+              <input
+                {...register("startDate")}
+                type="date"
+                className="w-full bg-transparent text-lg font-bold focus:outline-none"
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 保存ボタン */}
+        {isDirty && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Button type="submit" className="btn-3d w-full h-12 rounded-xl">
+              <Save className="w-4 h-4 mr-2" />
+              保存する
+            </Button>
+          </motion.div>
+        )}
+
+        {/* 説明 */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center text-xs text-muted-foreground pt-2"
+        >
+          開始日と1日の節約額から自動計算されます
+        </motion.p>
+
+        {/* リセット */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="pt-8"
+        >
+          <button
+            type="button"
+            onClick={() => setShowResetConfirm(true)}
+            className="w-full p-4 rounded-2xl border border-destructive/30 flex items-center gap-4 text-left active:bg-destructive/5 transition-colors"
+          >
+            <div className="w-10 h-10 bg-destructive/10 rounded-xl flex items-center justify-center">
+              <Trash2 className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <div className="font-medium text-destructive">データをリセット</div>
+              <div className="text-xs text-muted-foreground">すべての進捗を削除</div>
+            </div>
+          </button>
+        </motion.div>
+      </form>
 
       {/* Reset Confirmation Modal */}
       {showResetConfirm && (
@@ -229,7 +160,7 @@ export default function Settings() {
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-card rounded-3xl p-6 w-full max-w-sm"
+            className="card-3d rounded-3xl p-6 w-full max-w-sm"
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">
@@ -241,7 +172,7 @@ export default function Settings() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-6">
-              すべての禁酒記録、目標、設定が削除されます。本当にリセットしますか？
+              すべての進捗がリセットされます。本当によろしいですか？
             </p>
             <div className="flex gap-3">
               <Button
